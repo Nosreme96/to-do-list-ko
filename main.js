@@ -1,0 +1,1 @@
+(()=>{"use strict";const e=()=>{const e=document.createElement("div");e.className="header";const t=document.createElement("div");return t.className="title",t.innerHTML="#TO-DO-KO",e.append(t),e};document.getElementById("container").append(e()),console.log("test")})();
