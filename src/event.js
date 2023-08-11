@@ -1,12 +1,12 @@
 import { homepage } from "./homepage";
 import { createObj } from "./objects";
-import to_do_array from "./index";
-
+import to_do_array, { clicked } from "./index";
+import { sidebar_clicked_array } from "./homepage";
 const formPopup = (() => {
 
     const add_form = () =>{
         const fullscreen_cont = document.createElement('div');
-        fullscreen_cont.className = 'fullscreen-container';
+        fullscreen_cont.id = 'fullscreen-container';
 
         const popup = document.createElement('div');
         popup.id = 'popup';
@@ -103,7 +103,14 @@ const formPopup = (() => {
         ok_btn.type = 'submit';   
         ok_btn.className = 'submit';     
         ok_btn.innerHTML = 'Confirm';
-        to_do_form.append(form_label, title_label, to_do_title, desc_label, to_do_desc, due_date_label, due_date, priority_container, projass_label, project_assign, ok_btn);
+        const close_btn = document.createElement('div');
+        close_btn.className = 'close';
+        close_btn.innerHTML = 'X';
+        close_btn.addEventListener('click', function(){
+          document.getElementById('fullscreen-container').remove();
+        })
+        
+        to_do_form.append(form_label, title_label, to_do_title, desc_label, to_do_desc, due_date_label, due_date, priority_container, projass_label, project_assign, ok_btn, close_btn);
         popup.append(to_do_form);
         fullscreen_cont.append(popup);
         
@@ -119,5 +126,16 @@ const formPopup = (() => {
     }
     return {add_form, submitform};
 })();
+function sidebar_click (sidebars){
+  sidebars.addEventListener('click', function(){
+    if(clicked != sidebars.id)
+    {   
+        document.getElementsByClassName(clicked)[0].classList.remove('clicked');
+        clicked = sidebars.id;
+        document.getElementById(clicked).classList.add('clicked');
+        console.log("changed highlighted sidebar element");
+    }
+})
+};
 
-export {formPopup}
+export {formPopup, sidebar_click}

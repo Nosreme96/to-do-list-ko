@@ -1,5 +1,8 @@
-import { formPopup } from './event';
+import { formPopup, sidebar_click } from './event';
+import { clicked } from './index';
+import { to_do_array } from './index';
 
+var sidebar_clicked_array;
 const homepage = (() =>
 {
     const main = () => {
@@ -22,17 +25,27 @@ const homepage = (() =>
         const side_container = document.createElement('div');
         side_container.className = 'side-cont';
         const home = document.createElement('div');
-        home.className = 'home sidebar';
+        home.className = 'home sidebar clicked';
         home.innerHTML = 'Home';
+        home.id = 'home';
         const today = document.createElement('div');
         today.className = 'today sidebar';
         today.innerHTML = 'Today';
+        today.id = 'today';
         const week = document.createElement('div');
         week.className = 'week sidebar';
         week.innerHTML = 'Week';
+        week.id = 'week';
         const projects = document.createElement('div');
         projects.className = 'projects sidebar';
         projects.innerHTML = 'Projects';
+        projects.id = 'projects';
+        
+        sidebar_clicked_array = [home, today, week, projects];
+        for(let elements of sidebar_clicked_array){
+            sidebar_click(elements);
+        }
+        console.log(sidebar_clicked_array);
         side_container.append(home, today, week, projects);
         return side_container;
         
@@ -55,7 +68,6 @@ const homepage = (() =>
         duedates.innerHTML = 'Due';
         label_div.append(titles,descs,duedates);
         cards_container.append(label_div);
-
         container.append(cards_container, homepage.add_btn());
         return container
     }
@@ -80,7 +92,7 @@ const homepage = (() =>
         return add_container;
     }
     const remove_form = () => {
-        document.getElementsByClassName('fullscreen-container')[0].remove();
+        document.getElementById('fullscreen-container').remove();
     }
     function card (obj)  {
         let newcard = document.createElement('div');
@@ -92,19 +104,34 @@ const homepage = (() =>
         carddescription.innerHTML = obj.description;
         carddescription.className = 'card-desc';
         let cardduedate = document.createElement("div");
-        if(obj.duedate == null)
+        if(obj.due_date == '')
         {
-            obj.duedate = 'no due date';
-            cardduedate.innerHTML = obj.duedate;
+            obj.due_date = 'no due date';
+            cardduedate.innerHTML = obj.due_date;
         }
         else{
-            cardduedate.innerHTML = obj.duedate;
+            cardduedate.innerHTML = obj.due_date;
         }    
-        cardduedate.className = 'card-desc';
-        newcard.append(cardtitle, carddescription, cardduedate);
+        cardduedate.className = 'card-due';
+        newcard.id = Array.from(obj.title + obj.description).join('').replaceAll(' ', '');
+        let delete_icon = document.createElement('div');
+        delete_icon.className = 'trash-card '+ Array.from(obj.title + obj.description).join('').replaceAll(' ', '') ;
+        delete_icon.addEventListener('click', function(){
+            for(let x = 0; x < to_do_array.length; x++)
+            {
+                if (to_do_array[x].id == delete_icon.classList[1])
+                {
+                    to_do_array.splice(x,1);
+                }
+            }
+            this.parentNode.remove();
+            console.log(to_do_array, 'task removed from array');
+
+        })
+        newcard.append(cardtitle, carddescription, cardduedate, delete_icon);
         document.getElementById('card-cont').append(newcard);
     }
 
     return {titlebar, sidebar, container, main, add_btn, remove_form, card}
 })();
-export {homepage}
+export {homepage, sidebar_clicked_array}
