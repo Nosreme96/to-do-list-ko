@@ -1,6 +1,7 @@
-import { formPopup, sidebar_click } from './event';
+import { formPopup, sidebar_click, home_clicked, today_clicked, week_clicked, projects_clicked } from './event';
 import { clicked } from './index';
-import { to_do_array } from './index';
+
+
 
 var sidebar_clicked_array;
 const homepage = (() =>
@@ -55,6 +56,14 @@ const homepage = (() =>
         container.className = 'container';
         const cards_container = document.createElement('div');
         cards_container.id = 'card-cont';
+        if (clicked != 'projects'){
+            cards_container.append(homepage.label_div());
+        }
+        container.append(cards_container, homepage.add_btn());
+        return container
+
+    }
+    const label_div = () => {
         const label_div = document.createElement('div');
         label_div.className = 'card-labels';
         const titles = document.createElement('div');
@@ -67,9 +76,7 @@ const homepage = (() =>
         duedates.className = 'card-label';
         duedates.innerHTML = 'Due';
         label_div.append(titles,descs,duedates);
-        cards_container.append(label_div);
-        container.append(cards_container, homepage.add_btn());
-        return container
+        return label_div;
     }
     const add_btn = () => {
         const add_container = document.createElement('div');
@@ -91,12 +98,37 @@ const homepage = (() =>
         add_container.append(add_btn, add_text);
         return add_container;
     }
+    function addCard(carditem){
+        document.getElementById('card-cont').append(carditem);
+    }
     const remove_form = () => {
         document.getElementById('fullscreen-container').remove();
     }
     function card (obj)  {
         let newcard = document.createElement('div');
-        newcard.className = 'card';
+        let to_do_array = JSON.parse(localStorage.getItem('todoarr'));
+        newcard.className = 'card ' +obj.id ;
+        newcard.addEventListener('click', function () {
+            console.log('edit card');
+            let to_do_array = JSON.parse(localStorage.getItem('todoarr'));
+            let i = to_do_array.findIndex(task => task.id == newcard.classList[1]);
+            console.log(i);
+            console.log(to_do_array[i]);
+            document.getElementById('content').append(formPopup.formEdit(to_do_array[i]));
+            formPopup.submitFormEdit();
+        })
+        if (obj.priority == 'low')
+        {
+            newcard.classList.add('low');
+        }
+        else if (obj.priority == 'medium')
+        {
+            newcard.classList.add('medium');
+        }
+        else if (obj.priority == 'high')
+        {
+            newcard.classList.add('high');
+        }
         let cardtitle = document.createElement('div');
         cardtitle.innerHTML = obj.title;
         cardtitle.className = 'card-title';
@@ -113,25 +145,82 @@ const homepage = (() =>
             cardduedate.innerHTML = obj.due_date;
         }    
         cardduedate.className = 'card-due';
-        newcard.id = Array.from(obj.title + obj.description).join('').replaceAll(' ', '');
+        console.log(obj.title);
+        newcard.id = (obj.title + obj.description).replaceAll(' ', '');
         let delete_icon = document.createElement('div');
-        delete_icon.className = 'trash-card '+ Array.from(obj.title + obj.description).join('').replaceAll(' ', '') ;
+        let classTrash = 'trash-card '+ (obj.title + obj.description).replaceAll(' ', '') + ' '+ obj.project_name.replaceAll(' ', '') ;
+        delete_icon.className = classTrash;
         delete_icon.addEventListener('click', function(){
             for(let x = 0; x < to_do_array.length; x++)
             {
                 if (to_do_array[x].id == delete_icon.classList[1])
                 {
                     to_do_array.splice(x,1);
+                    localStorage.setItem('todoarr', JSON.stringify(to_do_array));
                 }
             }
-            this.parentNode.remove();
+            let project_array = JSON.parse(localStorage.getItem('projlist'));
+            let i = project_array.findIndex(e => e.title.replaceAll(' ', '') == delete_icon.classList[2]);
+            project_array[i].count--;
+            if(project_array[i].count < 1)
+            {
+                project_array.splice(i, 1);
+                localStorage.setItem('projlist', JSON.stringify(project_array));
+            }
+            
+            console.log(JSON.parse(localStorage.getItem('projlist')));
+            document.getElementsByClassName(classTrash)[0].parentNode.remove();
             console.log(to_do_array, 'task removed from array');
-
+            homepage.reloadscreen();
         })
         newcard.append(cardtitle, carddescription, cardduedate, delete_icon);
-        document.getElementById('card-cont').append(newcard);
+        //document.getElementById('card-cont').append(newcard);
+        console.log(newcard);
+        return  newcard;
+    }
+    function reloadscreen (){
+        if (clicked == 'home')
+            {
+                home_clicked();
+            }
+            else if (clicked == 'today')
+            {
+                today_clicked();
+            }
+            else if (clicked == 'week')
+            {
+                week_clicked();
+            }
+            else if (clicked == 'projects')
+            {
+                projects_clicked();
+            }
+
     }
 
-    return {titlebar, sidebar, container, main, add_btn, remove_form, card}
+    function project_card(proj){
+        let proj_card = document.createElement('div');
+        proj_card.className = proj.title + ' proj-card';
+        proj_card.innerHTML = `Project: ${proj.title} - ${proj.count} task/s`;
+        proj_card.addEventListener('click', function(){
+            let to_do_array = JSON.parse(localStorage.getItem('todoarr'));
+            let projTodos =  to_do_array.filter((item) => item.project_name == proj.title);
+            console.log(projTodos);
+            for(let tasks of projTodos){
+                proj_card.append(homepage.card(tasks));
+                console.log('added task to card');
+            }
+        })
+        return proj_card;
+    }
+    function remove_container () {
+        console.log(document.getElementsByClassName('container')[0]);
+        document.getElementsByClassName('container')[0].remove();
+        console.log('removed container');
+        document.getElementsByClassName('main')[0].append(homepage.container());
+        console.log('added container and add btn');
+    }
+
+    return {titlebar, sidebar, container, label_div, addCard, main, add_btn, remove_form, card, remove_container, project_card, reloadscreen}
 })();
 export {homepage, sidebar_clicked_array}
